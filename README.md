@@ -2,3 +2,6 @@
 Simple Grub Environment Block Edit Tool with support for the same commands as
 `grub-editenv`.  The `set` and `unset` commands accept multiple arguments just
 like `grub-editenv`.
+
+The provided `Makefile` will honor environment variables such as `CC` and
+`CFLAGS` so it can be used easily in cross-compilation environments like Yocto.

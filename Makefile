@@ -1,5 +1,9 @@
-CC=gcc
-CFLAGS=-std=c11 -Wall -Wextra
+# Allow overriding compiler and flags from the environment which is
+# common when cross compiling under environments like Yocto.
+ifeq ($(origin CC),default)
+CC = gcc
+endif
+CFLAGS ?= -std=c11 -Wall -Wextra
 TARGET=grubenv
 
 all: $(TARGET)
