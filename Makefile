@@ -4,12 +4,18 @@ ifeq ($(origin CC),default)
 CC = gcc
 endif
 CFLAGS ?= -std=c11 -Wall -Wextra
-TARGET=grubenv
+TARGET = grubenv
+PREFIX ?= /usr/local
+BINDIR ?= $(PREFIX)/bin
 
 all: $(TARGET)
 
 $(TARGET): grubenv.c version.h
 	$(CC) $(CFLAGS) -o $@ grubenv.c
+
+install: $(TARGET)
+	install -d $(DESTDIR)$(BINDIR)
+	install -m 0755 $(TARGET) $(DESTDIR)$(BINDIR)/$(TARGET)
 
 lint:
 	$(CC) $(CFLAGS) -fsyntax-only grubenv.c
