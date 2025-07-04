@@ -3,53 +3,59 @@ set -e
 TMP1=$(mktemp)
 TMP2=$(mktemp)
 
-# create
+check_equal() {
+    grub-editenv "$TMP1" list >"$TMP1.list"
+    ./grubenv "$TMP2" list >"$TMP2.list"
+    diff -u "$TMP1.list" "$TMP2.list"
+}
+
+# create new env files
 ./grubenv "$TMP2" create
 grub-editenv "$TMP1" create
-cmp "$TMP1" "$TMP2"
+check_equal
 
-# set foo with both tools
-./grubenv "$TMP2" set foo=bar
-grub-editenv "$TMP1" set foo=bar
-cmp "$TMP1" "$TMP2"
+# set multiple variables
+./grubenv "$TMP2" set a=1 b=2 c=3
+grub-editenv "$TMP1" set a=1 b=2 c=3
+check_equal
 
-# set baz with opposite tools
-grub-editenv "$TMP1" set baz=qux
-./grubenv "$TMP2" set baz=qux
-cmp "$TMP1" "$TMP2"
+# set additional variable using opposite tools
+grub-editenv "$TMP1" set d=4
+./grubenv "$TMP2" set d=4
+check_equal
 
 # get and list
-./grubenv "$TMP2" get foo | grep -qx 'bar'
-./grubenv "$TMP2" list | grep -q '^foo=bar$'
+./grubenv "$TMP2" get a | grep -qx '1'
+./grubenv "$TMP2" list | grep -q '^c=3$'
 
-# unset foo
-./grubenv "$TMP2" unset foo
-grub-editenv "$TMP1" unset foo
-cmp "$TMP1" "$TMP2"
+# unset multiple variables
+./grubenv "$TMP2" unset a b
+grub-editenv "$TMP1" unset a b
+check_equal
 
-# clear
+# clear using our tool, mimic with grub-editenv
 ./grubenv "$TMP2" clear
-grub-editenv "$TMP1" unset baz
-cmp "$TMP1" "$TMP2"
+for var in c d; do grub-editenv "$TMP1" unset "$var"; done
+check_equal
 
 # set when file missing should create
 rm "$TMP1" "$TMP2"
-./grubenv "$TMP2" set alpha=beta
-grub-editenv "$TMP1" set alpha=beta
-cmp "$TMP1" "$TMP2"
+./grubenv "$TMP2" set alpha=beta gamma=delta
+grub-editenv "$TMP1" set alpha=beta gamma=delta
+check_equal
 
 # list when file missing should create and output empty
 rm "$TMP1" "$TMP2"
 out1=$(grub-editenv "$TMP1" list)
 out2=$(./grubenv "$TMP2" list)
 [ -z "$out1" ] && [ -z "$out2" ]
-cmp "$TMP1" "$TMP2"
+check_equal
 
 # unset when file missing should create
 rm "$TMP1" "$TMP2"
 ./grubenv "$TMP2" unset alpha
 grub-editenv "$TMP1" unset alpha
-cmp "$TMP1" "$TMP2"
+check_equal
 
 # get missing variable must fail
 if ./grubenv "$TMP2" get missing >/dev/null 2>&1; then
@@ -57,4 +63,4 @@ if ./grubenv "$TMP2" get missing >/dev/null 2>&1; then
   exit 1
 fi
 
-rm "$TMP1" "$TMP2"
+rm "$TMP1" "$TMP2" "$TMP1.list" "$TMP2.list"
