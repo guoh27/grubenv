@@ -200,12 +200,22 @@ static void load_env_file(const char *path, struct env *e, bool *existed) {
     char *start = (char *)buf;
     char *end = (char *)buf + blk_size;
 
-    for (int i = 0; i < 2; ++i) {
-        char *nl = memchr(start, '\n', end - start);
-        if (!nl) {
-            free(buf);
-            return;
-        }
+    /* Skip mandatory first header line */
+    char *nl = memchr(start, '\n', end - start);
+    if (!nl) {
+        free(buf);
+        return;
+    }
+    start = nl + 1;
+
+    /* Skip optional warning header line */
+    nl = memchr(start, '\n', end - start);
+    if (!nl) {
+        free(buf);
+        return;
+    }
+    if ((size_t)(nl - start) == sizeof(header2) - 1 &&
+        memcmp(start, header2, sizeof(header2) - 1) == 0) {
         start = nl + 1;
     }
 
@@ -327,14 +337,16 @@ int main(int argc, char *argv[]) {
     }
 
     if (strcmp(cmd, "set") == 0) {
-        if (argc - optind != 1)
+        if (argc - optind < 1)
             usage(argv[0]);
-        env_set(&e, argv[optind]);
+        for (int i = optind; i < argc; ++i)
+            env_set(&e, argv[i]);
         need_save = true;
     } else if (strcmp(cmd, "unset") == 0) {
-        if (argc - optind != 1)
+        if (argc - optind < 1)
             usage(argv[0]);
-        env_unset(&e, argv[optind]);
+        for (int i = optind; i < argc; ++i)
+            env_unset(&e, argv[i]);
         need_save = true;
     } else if (strcmp(cmd, "clear") == 0) {
         env_clear(&e);
