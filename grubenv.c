@@ -236,9 +236,9 @@ static void load_env_file(const char *path, struct env *e, bool *existed) {
         }
         if (nl == end)
             break;
-        if (nl + 1 >= end || nl[1] == '#')
-            break;
         start = nl + 1;
+        if (start >= end)
+            break;
     }
     free(buf);
 }
