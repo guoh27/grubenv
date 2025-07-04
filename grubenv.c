@@ -15,6 +15,7 @@
 #include <errno.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include "version.h"
 
 /*
  * Internal environment representation: a dynamic array of "KEY=VAL" strings
@@ -284,7 +285,7 @@ static void save_env_file(const char *path, struct env *e) {
 /* Display short usage help */
 static void usage(const char *prog) {
     fprintf(stderr,
-            "Usage: %s [-s size] <envfile|-> <create|list|get|set|unset|clear> [ARGS]\n",
+            "Usage: %s [-s size] [-V] <envfile|-> <create|list|get|set|unset|clear> [ARGS]\n",
             prog);
     exit(EXIT_FAILURE);
 }
@@ -292,13 +293,16 @@ static void usage(const char *prog) {
 /* Entry point. Parses arguments and dispatches commands. */
 int main(int argc, char *argv[]) {
     int opt;
-    while ((opt = getopt(argc, argv, "s:")) != -1) {
+    while ((opt = getopt(argc, argv, "s:V")) != -1) {
         switch (opt) {
         case 's':
             blk_size = (uint32_t)strtoul(optarg, NULL, 0);
             if (blk_size < 128)
                 die("size");
             break;
+        case 'V':
+            puts(GRUBENV_VERSION);
+            return 0;
         default:
             usage(argv[0]);
         }

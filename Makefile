@@ -8,8 +8,8 @@ TARGET=grubenv
 
 all: $(TARGET)
 
-$(TARGET): grubenv.c
-	$(CC) $(CFLAGS) -o $@ $<
+$(TARGET): grubenv.c version.h
+	$(CC) $(CFLAGS) -o $@ grubenv.c
 
 lint:
 	$(CC) $(CFLAGS) -fsyntax-only grubenv.c

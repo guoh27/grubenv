@@ -9,6 +9,9 @@ check_equal() {
     diff -u "$TMP1.list" "$TMP2.list"
 }
 
+# verify version output
+./grubenv -V | grep -qx '1.0.0'
+
 # create new env files
 ./grubenv "$TMP2" create
 grub-editenv "$TMP1" create
